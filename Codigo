@@ -1,0 +1,109 @@
+ # Codigos para no tener que escribir (al indicar la unidad de medida)
+ # la string entera, solo la letra referencia:
+ 
+g = 'gramos'
+u = 'unidades'
+
+
+ # Archivo de distintos Alimentos con sus valores. "unidades" indica los valores
+ # por "unidad", "gramos" indica los valores POR CADA 100 GRAMOS:
+
+yogurGrHac = {'gramos':   {'fail':'fail'},  #Yogur griego Hacendado
+              'unidades':   {'kcal':161, 'grasas':13.5, 'Y_saturadas':8.4, 'hidratos':4.9, 'Y_azucares':4.9, 'proteinas':4.9, 'sal':0.15, 'calcio':0.176}}
+yogurNatMilb = {'unidades':   {'fail':'fail'},  #YogurNatMilb
+               'gramos':   {'kcal':61, 'grasas':3.5, 'Y_saturadas':2.5, 'hidratos':3.8, 'Y_azucares':3.8, 'proteinas':3.3, 'sal':0.13}}
+muesliCrown = {'unidades':   {'fail':'fail'},  #Muesli Crownfield
+               'gramos':   {'kcal':381, 'grasas':10.8, 'Y_saturadas':2.7, 'hidratos':55, 'Y_azucares':11, 'fibra':11.8, 'proteinas':10.1, 'sal':0.06}}
+espaguetisGen = {'unidades':   {'fail':'fail'},  #Espaguetis genericos
+                 'gramos':   {'kcal':157, 'grasas':0.9, 'Y_saturadas':0.2, 'hidratos':30.6, 'Y_azucares':0.6, 'fibra':1.8, 'proteinas':5.8, 'sodio':0.1}}
+lentejasGen = {'unidades':   {'fail':'fail'},  #Lentejas genericas
+               'gramos':   {'kcal':114, 'grasas':0.4, 'Y_saturadas':0, 'hidratos':19.5, 'Y_azucares':1.8, 'fibra':7.9, 'proteinas':9, 'sodio':0.2}}
+merluzaGen = {'unidades':   {'fail':'fail'},  #Merluza generica
+           'gramos':   {'kcal':64, 'grasas':1.8, 'Y_saturadas':0.35, 'hidratos':0, 'Y_azucares':0, 'proteinas':11.9, }}
+tortillaGen = {'unidades':   {'fail':'fail'},  #Tortilla generica
+           'gramos':   {'kcal':217, 'grasas':11.8, 'hidratos':24, 'proteinas':3.9, }}
+
+
+
+ # Registro de Comidas:
+"""
+Plantilla:
+a_X_X_X = [[(_,_,_)],
+            [(_,_,_)],
+            [(_,_,_)],
+            [(_,_,_)], 
+            [(_,_,_)]]
+,(_,_,_)
+"""
+a_10_09_2020 = [[(espaguetisGen,g,150)],
+                [(yogurGrHac,u,1),(muesliCrown,g,50)],
+                [(lentejasGen,g,247),(merluzaGen,g,195),(yogurNatMilb,g,125)],
+                [(espaguetisGen,g,100)],
+                [(espaguetisGen,g,120),(tortillaGen,g,90),(merluzaGen,g,90)]]
+
+
+################################## Herramientas de calculo:
+
+
+"""
+"AlimenCant" hace referencia a ternas (Alimento,Unidad,Cantidad), propias de una cierta Comida.
+
+"Alimento" hace referencia a un cierto tipo de alimento que este en el archivo, por ejemplo yogurG o muesliCrown.
+Cada Alimento es un diccionario con dos diccionarios, uno para cada unidad de medida usada (gramos/unidades),
+cada uno de los cuales contiene los valores numericos (en gramos) asociados a cada valor nutricional (grasas,
+proteínas...) para ese alimento.
+
+"Unidad" toma valores g o u, constantes definidas al principio y que distinguen si se realiza la medida en gramos
+o en unidades.
+
+"Cantidad" es la cantidad de Alimento medido en la Unidad especificada (gramos o unidades).
+
+Las cantidades comidas se archivan en gramos, pero los valores asociados a cada Alimento estan archivados por cada
+cien gramos. La conversion necesaria se hace en la funcion 'totalAUC'.
+
+En general, los valores asociados a cada Alimento pretendo que sean los que tiene TRAS ser cocinado, que en algunos
+casos cambia mucho (lentejas por ejemplo, se añade mucha agua). Lo hago asi porque los peso al servilos, otra opcion
+seria pesar al cocina y tal pero bueno de momento esta hecho asi.
+"""
+
+ # Funcion auxiliar para hacer el diccionario suma:
+
+def sumaDicc(dicc1,dicc2):
+    diccFinal = dicc1
+    for i in dicc2:
+        if i in dicc1:
+            diccFinal[i] = round(dicc1[i] + dicc2[i], 3)
+        else:
+            diccFinal[i] = dicc2[i]
+    return diccFinal
+
+ # Calculadora del total de Valores en un dia:
+
+def totalDia(dia):
+    total = {}
+    for CO in dia:  #Para cada CO Comida del dia
+        total = sumaDicc(total, totalCO(CO))
+    return total
+
+ # Calculadora del total de Valores que hay en una cierta Comida CO:
+
+def totalCO(CO):
+    total = {}
+    for (A,U,C) in CO:  #Para cada AlimenCant en la comida
+        total = sumaDicc(total, totalAUC(A,U,C))
+    return total
+
+ # Calculadora del total de Valores que hay en una cierta AlimenCant:
+
+def totalAUC(A,U,C):
+    total = {}
+    if U == 'gramos':
+        C100 = C/100  #Para poder hacer calculos cuando los Valores estan medidos por cada 100g
+        for i in A['gramos']:  #Para cada i Valor del alimento A
+            total[i] = round(A['gramos'][i] * C100, 3)
+    if U == 'unidades':
+        for i in A['unidades']:  #Para cada Valor i del alimento
+            total[i] = round(A['unidades'][i] * C, 3)
+    return total
+
+
